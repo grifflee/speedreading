@@ -21,6 +21,13 @@ class RSVPReader {
         this.displaySection = document.getElementById('displaySection');
         this.wordDisplay = document.getElementById('wordDisplay');
         this.progressText = document.getElementById('progressText');
+        this.fileInput = document.getElementById('fileInput');
+        this.fileName = document.getElementById('fileName');
+        
+        // Set up PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
     }
     
     attachEventListeners() {
@@ -34,6 +41,71 @@ class RSVPReader {
                 this.restart();
             }
         });
+        this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+    }
+    
+    async handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        this.fileName.textContent = `Loading: ${file.name}...`;
+        this.fileName.style.color = '#667eea';
+        
+        try {
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'txt') {
+                await this.readTextFile(file);
+            } else if (fileExtension === 'pdf') {
+                await this.readPDFFile(file);
+            } else {
+                throw new Error('Unsupported file type. Please upload a .txt or .pdf file.');
+            }
+            
+            this.fileName.textContent = `Loaded: ${file.name}`;
+            this.fileName.style.color = '#27ae60';
+        } catch (error) {
+            console.error('Error reading file:', error);
+            this.fileName.textContent = `Error: ${error.message}`;
+            this.fileName.style.color = '#e74c3c';
+            alert(`Error reading file: ${error.message}`);
+        }
+    }
+    
+    readTextFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.textInput.value = e.target.result;
+                resolve();
+            };
+            reader.onerror = () => reject(new Error('Failed to read text file'));
+            reader.readAsText(file);
+        });
+    }
+    
+    async readPDFFile(file) {
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            let fullText = '';
+            const numPages = pdf.numPages;
+            
+            // Extract text from all pages
+            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items
+                    .map(item => item.str)
+                    .join(' ');
+                fullText += pageText + ' ';
+            }
+            
+            this.textInput.value = fullText.trim();
+        } catch (error) {
+            throw new Error(`Failed to parse PDF: ${error.message}`);
+        }
     }
     
     parseText(text) {

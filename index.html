@@ -5,11 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RSVP Speed Reading</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="input-section">
             <h1>RSVP Speed Reading</h1>
+            <div class="file-upload-section">
+                <label for="fileInput" class="file-input-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Upload PDF or TXT File
+                </label>
+                <input 
+                    type="file" 
+                    id="fileInput" 
+                    accept=".pdf,.txt"
+                    style="display: none;"
+                >
+                <span id="fileName" class="file-name"></span>
+            </div>
+            <div class="divider">
+                <span>OR</span>
+            </div>
             <textarea 
                 id="textInput" 
                 placeholder="Enter or paste your text here..."
