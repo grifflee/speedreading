@@ -20,6 +20,8 @@ class RSVPReader {
         this.speedValue = document.getElementById('speedValue');
         this.spacingSlider = document.getElementById('spacingSlider');
         this.spacingValue = document.getElementById('spacingValue');
+        this.colorPicker = document.getElementById('colorPicker');
+        this.colorValue = document.getElementById('colorValue');
         this.displaySection = document.getElementById('displaySection');
         this.wordDisplay = document.getElementById('wordDisplay');
         this.cellGrid = document.getElementById('cellGrid');
@@ -30,6 +32,13 @@ class RSVPReader {
         // Initialize spacing CSS variable to match slider value
         const initialSpacing = parseInt(this.spacingSlider.value);
         document.documentElement.style.setProperty('--letter-gap', `${initialSpacing}px`);
+        
+        // Initialize color CSS variable to match color picker value (with fallback)
+        const initialColor = this.colorPicker ? this.colorPicker.value : '#e74c3c';
+        document.documentElement.style.setProperty('--center-letter-color', initialColor);
+        if (this.colorValue) {
+            this.colorValue.textContent = initialColor;
+        }
         
         // Set up PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
@@ -53,6 +62,15 @@ class RSVPReader {
             this.spacingValue.textContent = spacingValue;
             document.documentElement.style.setProperty('--letter-gap', `${spacingValue}px`);
         });
+        if (this.colorPicker) {
+            this.colorPicker.addEventListener('input', (e) => {
+                const colorValue = e.target.value;
+                if (this.colorValue) {
+                    this.colorValue.textContent = colorValue;
+                }
+                document.documentElement.style.setProperty('--center-letter-color', colorValue);
+            });
+        }
         this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
     }
     
