@@ -44,6 +44,9 @@ class RSVPReader {
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
+        
+        // Initialize preview display
+        this.updatePreview();
     }
     
     attachEventListeners() {
@@ -71,6 +74,7 @@ class RSVPReader {
                 document.documentElement.style.setProperty('--center-letter-color', colorValue);
             });
         }
+        this.textInput.addEventListener('input', () => this.updatePreview());
         this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
     }
     
@@ -107,6 +111,7 @@ class RSVPReader {
             const reader = new FileReader();
             reader.onload = (e) => {
                 this.textInput.value = e.target.result;
+                this.updatePreview();
                 resolve();
             };
             reader.onerror = () => reject(new Error('Failed to read text file'));
@@ -133,6 +138,7 @@ class RSVPReader {
             }
             
             this.textInput.value = fullText.trim();
+            this.updatePreview();
         } catch (error) {
             throw new Error(`Failed to parse PDF: ${error.message}`);
         }
@@ -166,23 +172,16 @@ class RSVPReader {
         return startIdx + Math.floor(wordLength / 2);
     }
     
-    displayWord() {
-        if (this.currentIndex >= this.words.length) {
-            this.stop();
-            return;
-        }
+    renderWord(word) {
+        // Clear previous word
+        this.cellGrid.innerHTML = '';
         
-        const word = this.words[this.currentIndex];
-        if (word.length === 0) {
-            this.currentIndex++;
+        if (!word || word.length === 0) {
             return;
         }
         
         // Get the index of the letter to highlight (middle of word)
         const highlightIndex = this.getHighlightIndex(word);
-        
-        // Clear previous word
-        this.cellGrid.innerHTML = '';
         
         // Split word into characters
         const chars = word.split('');
@@ -224,6 +223,44 @@ class RSVPReader {
             const halfWidth = centerLetter.offsetWidth / 2;
             this.cellGrid.style.setProperty('--center-letter-half-width', `${halfWidth}px`);
         });
+    }
+    
+    updatePreview() {
+        // Display first word or "8888888" if input is empty
+        const text = this.textInput.value.trim();
+        let wordToDisplay = '8888888';
+        
+        if (text) {
+            const words = this.parseText(text);
+            if (words.length > 0) {
+                wordToDisplay = words[0];
+            }
+        }
+        
+        this.renderWord(wordToDisplay);
+        
+        // Update progress text
+        if (this.isPlaying) {
+            this.progressText.textContent = `Word ${this.currentIndex + 1} of ${this.words.length}`;
+        } else {
+            const wordCount = text ? this.parseText(text).length : 0;
+            this.progressText.textContent = wordCount > 0 ? `Word 1 of ${wordCount}` : 'Word 0 of 0';
+        }
+    }
+    
+    displayWord() {
+        if (this.currentIndex >= this.words.length) {
+            this.stop();
+            return;
+        }
+        
+        const word = this.words[this.currentIndex];
+        if (word.length === 0) {
+            this.currentIndex++;
+            return;
+        }
+        
+        this.renderWord(word);
         
         this.progressText.textContent = `Word ${this.currentIndex + 1} of ${this.words.length}`;
         
