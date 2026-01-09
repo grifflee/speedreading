@@ -9,9 +9,19 @@
 </head>
 <body>
     <div class="container">
+        <h1>Griffen's LOCAL storage</h1>
+        <h1>RSVP Speed Reading</h1>
+        
+        <div class="display-section" id="displaySection">
+            <div id="wordDisplay" class="word-display">
+                <div class="cell-grid" id="cellGrid"></div>
+            </div>
+            <div class="progress-info">
+                <span id="progressText">Word 0 of 0</span>
+            </div>
+        </div>
+        
         <div class="input-section">
-            <h1>Griffen's LOCAL storage</h1>
-            <h1>RSVP Speed Reading</h1>
             <div class="file-upload-section">
                 <label for="fileInput" class="file-input-label">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -29,14 +39,7 @@
                 >
                 <span id="fileName" class="file-name"></span>
             </div>
-            <div class="divider">
-                <span>OR</span>
-            </div>
-            <textarea 
-                id="textInput" 
-                placeholder="Enter or paste your text here..."
-                rows="8"
-            ></textarea>
+            
             <div class="controls">
                 <div class="speed-control">
                     <label for="speedSlider">Speed: <span id="speedValue">300</span> WPM</label>
@@ -74,15 +77,16 @@
                 <button id="pauseBtn" style="display: none;">Pause</button>
                 <button id="stopBtn" style="display: none;">Stop</button>
             </div>
-        </div>
-        
-        <div class="display-section" id="displaySection" style="display: none;">
-            <div id="wordDisplay" class="word-display">
-                <div class="cell-grid" id="cellGrid"></div>
+            
+            <div class="divider">
+                <span>OR</span>
             </div>
-            <div class="progress-info">
-                <span id="progressText">Word 0 of 0</span>
-            </div>
+            
+            <textarea 
+                id="textInput" 
+                placeholder="Enter or paste your text here..."
+                rows="8"
+            ></textarea>
         </div>
     </div>
     

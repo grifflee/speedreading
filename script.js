@@ -250,7 +250,6 @@ class RSVPReader {
             this.startBtn.style.display = 'none';
             this.pauseBtn.style.display = 'inline-block';
             this.stopBtn.style.display = 'inline-block';
-            this.displaySection.style.display = 'flex';
             this.restart();
             return;
         }
@@ -263,7 +262,6 @@ class RSVPReader {
         this.startBtn.style.display = 'none';
         this.pauseBtn.style.display = 'inline-block';
         this.stopBtn.style.display = 'inline-block';
-        this.displaySection.style.display = 'flex';
         this.textInput.disabled = true;
         
         this.displayWord();
@@ -308,7 +306,6 @@ class RSVPReader {
         this.startBtn.textContent = 'Start Reading';
         this.pauseBtn.style.display = 'none';
         this.stopBtn.style.display = 'none';
-        this.displaySection.style.display = 'none';
         this.textInput.disabled = false;
         
         // Clear all cells
