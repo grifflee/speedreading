@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP Speed Reading</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <h1>RSVP Speed Reading</h1>
+            <textarea 
+                id="textInput" 
+                placeholder="Enter or paste your text here..."
+                rows="8"
+            ></textarea>
+            <div class="controls">
+                <div class="speed-control">
+                    <label for="speedSlider">Speed: <span id="speedValue">300</span> WPM</label>
+                    <input 
+                        type="range" 
+                        id="speedSlider" 
+                        min="100" 
+                        max="1000" 
+                        value="300" 
+                        step="50"
+                    >
+                </div>
+                <button id="startBtn">Start Reading</button>
+                <button id="pauseBtn" style="display: none;">Pause</button>
+                <button id="stopBtn" style="display: none;">Stop</button>
+            </div>
+        </div>
+        
+        <div class="display-section" id="displaySection" style="display: none;">
+            <div id="wordDisplay" class="word-display"></div>
+            <div class="progress-info">
+                <span id="progressText">Word 0 of 0</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
