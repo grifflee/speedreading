@@ -230,10 +230,38 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    letter-spacing: 2px;
+    width: 100%;
+    position: relative;
 }
 
-.word-display .red-letter {
+.cell-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 0;
+    width: 100%;
+    max-width: 900px;
+    align-items: center;
+    justify-items: center;
+}
+
+.cell {
+    width: calc(100% + 10px);
+    min-width: 0;
+    text-align: center;
+    font-size: 72px;
+    font-weight: 600;
+    color: #333;
+    letter-spacing: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    padding: 0;
+    margin-left: -5px;
+    margin-right: -5px;
+}
+
+.cell.red-letter {
     color: #e74c3c;
 }
 
@@ -245,12 +273,16 @@ button {
 }
 
 @media (max-width: 768px) {
-    .word-display {
+    .cell {
         font-size: 48px;
     }
     
     .container {
         padding: 20px;
+    }
+    
+    .cell-grid {
+        max-width: 100%;
     }
 }
 

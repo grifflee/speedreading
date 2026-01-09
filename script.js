@@ -20,13 +20,31 @@ class RSVPReader {
         this.speedValue = document.getElementById('speedValue');
         this.displaySection = document.getElementById('displaySection');
         this.wordDisplay = document.getElementById('wordDisplay');
+        this.cellGrid = document.getElementById('cellGrid');
         this.progressText = document.getElementById('progressText');
         this.fileInput = document.getElementById('fileInput');
         this.fileName = document.getElementById('fileName');
         
+        // Cell grid configuration
+        this.numCells = 9;
+        this.anchorCellIndex = 4; // Middle cell (0-indexed, so cell #5)
+        
+        // Initialize cell grid
+        this.initializeCellGrid();
+        
         // Set up PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    }
+    
+    initializeCellGrid() {
+        this.cellGrid.innerHTML = '';
+        for (let i = 0; i < this.numCells; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = `cell-${i}`;
+            this.cellGrid.appendChild(cell);
         }
     }
     
@@ -113,10 +131,9 @@ class RSVPReader {
         return text.trim().split(/\s+/).filter(word => word.length > 0);
     }
     
-    highlightLetter(word) {
-        // Find the optimal recognition point (typically around the middle)
-        // For RSVP, we'll highlight a letter near the center
-        if (word.length === 0) return word;
+    getHighlightIndex(word) {
+        // Find the optimal recognition point (middle of the word)
+        if (word.length === 0) return 0;
         
         // Skip punctuation at the start
         let startIdx = 0;
@@ -130,17 +147,11 @@ class RSVPReader {
             endIdx--;
         }
         
-        if (startIdx > endIdx) return word; // Only punctuation
+        if (startIdx > endIdx) return Math.floor(word.length / 2); // Only punctuation, use middle
         
         const wordLength = endIdx - startIdx + 1;
-        // Choose a letter around 1/3 from the start (optimal recognition point)
-        const highlightIndex = startIdx + Math.floor(wordLength / 3);
-        
-        const before = word.substring(0, highlightIndex);
-        const letter = word[highlightIndex];
-        const after = word.substring(highlightIndex + 1);
-        
-        return `${before}<span class="red-letter">${letter}</span>${after}`;
+        // Choose the middle letter of the actual word (not including punctuation)
+        return startIdx + Math.floor(wordLength / 2);
     }
     
     displayWord() {
@@ -150,7 +161,66 @@ class RSVPReader {
         }
         
         const word = this.words[this.currentIndex];
-        this.wordDisplay.innerHTML = this.highlightLetter(word);
+        if (word.length === 0) {
+            this.currentIndex++;
+            return;
+        }
+        
+        // Get the index of the letter to highlight (middle of word)
+        const highlightIndex = this.getHighlightIndex(word);
+        
+        // Split word into characters
+        const chars = word.split('');
+        
+        // Calculate how to distribute characters across cells
+        // The red letter should always be in the anchor cell (cell #5, index 4)
+        const cellsBeforeAnchor = this.anchorCellIndex;
+        const cellsAfterAnchor = this.numCells - this.anchorCellIndex - 1;
+        
+        // Calculate how many characters go before and after the red letter
+        const charsBefore = highlightIndex;
+        const charsAfter = chars.length - highlightIndex - 1;
+        
+        // Distribute characters, trying to balance around the anchor
+        // We'll place characters starting from the anchor cell and spreading outward
+        const cellContents = new Array(this.numCells).fill('');
+        const isRedLetter = new Array(this.numCells).fill(false);
+        
+        // Place the red letter in the anchor cell
+        cellContents[this.anchorCellIndex] = chars[highlightIndex];
+        isRedLetter[this.anchorCellIndex] = true;
+        
+        // Distribute characters before the red letter (right to left from anchor)
+        let charIdx = highlightIndex - 1;
+        let cellIdx = this.anchorCellIndex - 1;
+        while (charIdx >= 0 && cellIdx >= 0) {
+            cellContents[cellIdx] = chars[charIdx];
+            charIdx--;
+            cellIdx--;
+        }
+        
+        // Distribute characters after the red letter (left to right from anchor)
+        charIdx = highlightIndex + 1;
+        cellIdx = this.anchorCellIndex + 1;
+        while (charIdx < chars.length && cellIdx < this.numCells) {
+            cellContents[cellIdx] = chars[charIdx];
+            charIdx++;
+            cellIdx++;
+        }
+        
+        // Render cells
+        for (let i = 0; i < this.numCells; i++) {
+            const cell = document.getElementById(`cell-${i}`);
+            if (cell) {
+                cell.textContent = cellContents[i];
+                if (isRedLetter[i]) {
+                    cell.classList.add('red-letter');
+                } else {
+                    cell.classList.remove('red-letter');
+                }
+            }
+        }
+        
         this.progressText.textContent = `Word ${this.currentIndex + 1} of ${this.words.length}`;
         
         this.currentIndex++;
@@ -236,7 +306,16 @@ class RSVPReader {
         this.stopBtn.style.display = 'none';
         this.displaySection.style.display = 'none';
         this.textInput.disabled = false;
-        this.wordDisplay.innerHTML = '';
+        
+        // Clear all cells
+        for (let i = 0; i < this.numCells; i++) {
+            const cell = document.getElementById(`cell-${i}`);
+            if (cell) {
+                cell.textContent = '';
+                cell.classList.remove('red-letter');
+            }
+        }
+        
         this.progressText.textContent = 'Word 0 of 0';
     }
     
