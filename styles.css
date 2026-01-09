@@ -234,35 +234,56 @@ button {
     position: relative;
 }
 
-.cell-grid {
-    display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    gap: 0;
-    width: 100%;
-    max-width: 900px;
-    align-items: center;
-    justify-items: center;
+:root {
+    --letter-gap: 0px;
 }
 
-.cell {
-    width: calc(100% + 10px);
-    min-width: 0;
-    text-align: center;
-    font-size: 72px;
-    font-weight: 600;
-    color: #333;
-    letter-spacing: 0;
+.cell-grid {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: visible;
-    padding: 0;
-    margin-left: -5px;
-    margin-right: -5px;
+    position: relative;
+    width: 100%;
+    height: 100px;
 }
 
-.cell.red-letter {
+/* Container for letters before the red letter - aligned to the right (towards center) */
+.letters-before {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--letter-gap);
+    position: absolute;
+    right: calc(50% + var(--center-letter-half-width, 20px) + var(--letter-gap));
+}
+
+/* The red letter - fixed at exact center */
+.center-letter {
+    font-size: 72px;
+    font-weight: 600;
     color: #e74c3c;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Container for letters after the red letter - aligned to the left (away from center) */
+.letters-after {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--letter-gap);
+    position: absolute;
+    left: calc(50% + var(--center-letter-half-width, 20px) + var(--letter-gap));
+}
+
+.cell {
+    font-size: 72px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .progress-info {

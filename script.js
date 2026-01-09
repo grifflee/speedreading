@@ -18,6 +18,8 @@ class RSVPReader {
         this.stopBtn = document.getElementById('stopBtn');
         this.speedSlider = document.getElementById('speedSlider');
         this.speedValue = document.getElementById('speedValue');
+        this.spacingSlider = document.getElementById('spacingSlider');
+        this.spacingValue = document.getElementById('spacingValue');
         this.displaySection = document.getElementById('displaySection');
         this.wordDisplay = document.getElementById('wordDisplay');
         this.cellGrid = document.getElementById('cellGrid');
@@ -25,26 +27,13 @@ class RSVPReader {
         this.fileInput = document.getElementById('fileInput');
         this.fileName = document.getElementById('fileName');
         
-        // Cell grid configuration
-        this.numCells = 9;
-        this.anchorCellIndex = 4; // Middle cell (0-indexed, so cell #5)
-        
-        // Initialize cell grid
-        this.initializeCellGrid();
+        // Initialize spacing CSS variable to match slider value
+        const initialSpacing = parseInt(this.spacingSlider.value);
+        document.documentElement.style.setProperty('--letter-gap', `${initialSpacing}px`);
         
         // Set up PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        }
-    }
-    
-    initializeCellGrid() {
-        this.cellGrid.innerHTML = '';
-        for (let i = 0; i < this.numCells; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.id = `cell-${i}`;
-            this.cellGrid.appendChild(cell);
         }
     }
     
@@ -58,6 +47,11 @@ class RSVPReader {
             if (this.isPlaying && !this.isPaused) {
                 this.restart();
             }
+        });
+        this.spacingSlider.addEventListener('input', (e) => {
+            const spacingValue = parseInt(e.target.value);
+            this.spacingValue.textContent = spacingValue;
+            document.documentElement.style.setProperty('--letter-gap', `${spacingValue}px`);
         });
         this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
     }
@@ -169,57 +163,49 @@ class RSVPReader {
         // Get the index of the letter to highlight (middle of word)
         const highlightIndex = this.getHighlightIndex(word);
         
+        // Clear previous word
+        this.cellGrid.innerHTML = '';
+        
         // Split word into characters
         const chars = word.split('');
         
-        // Calculate how to distribute characters across cells
-        // The red letter should always be in the anchor cell (cell #5, index 4)
-        const cellsBeforeAnchor = this.anchorCellIndex;
-        const cellsAfterAnchor = this.numCells - this.anchorCellIndex - 1;
+        // Create three containers: before, center (red), after
+        const lettersBefore = document.createElement('div');
+        lettersBefore.className = 'letters-before';
         
-        // Calculate how many characters go before and after the red letter
-        const charsBefore = highlightIndex;
-        const charsAfter = chars.length - highlightIndex - 1;
+        const centerLetter = document.createElement('span');
+        centerLetter.className = 'center-letter';
+        centerLetter.textContent = chars[highlightIndex];
         
-        // Distribute characters, trying to balance around the anchor
-        // We'll place characters starting from the anchor cell and spreading outward
-        const cellContents = new Array(this.numCells).fill('');
-        const isRedLetter = new Array(this.numCells).fill(false);
+        const lettersAfter = document.createElement('div');
+        lettersAfter.className = 'letters-after';
         
-        // Place the red letter in the anchor cell
-        cellContents[this.anchorCellIndex] = chars[highlightIndex];
-        isRedLetter[this.anchorCellIndex] = true;
-        
-        // Distribute characters before the red letter (right to left from anchor)
-        let charIdx = highlightIndex - 1;
-        let cellIdx = this.anchorCellIndex - 1;
-        while (charIdx >= 0 && cellIdx >= 0) {
-            cellContents[cellIdx] = chars[charIdx];
-            charIdx--;
-            cellIdx--;
+        // Add letters before the red letter
+        for (let i = 0; i < highlightIndex; i++) {
+            const cell = document.createElement('span');
+            cell.className = 'cell';
+            cell.textContent = chars[i];
+            lettersBefore.appendChild(cell);
         }
         
-        // Distribute characters after the red letter (left to right from anchor)
-        charIdx = highlightIndex + 1;
-        cellIdx = this.anchorCellIndex + 1;
-        while (charIdx < chars.length && cellIdx < this.numCells) {
-            cellContents[cellIdx] = chars[charIdx];
-            charIdx++;
-            cellIdx++;
+        // Add letters after the red letter
+        for (let i = highlightIndex + 1; i < chars.length; i++) {
+            const cell = document.createElement('span');
+            cell.className = 'cell';
+            cell.textContent = chars[i];
+            lettersAfter.appendChild(cell);
         }
         
-        // Render cells
-        for (let i = 0; i < this.numCells; i++) {
-            const cell = document.getElementById(`cell-${i}`);
-            if (cell) {
-                cell.textContent = cellContents[i];
-                if (isRedLetter[i]) {
-                    cell.classList.add('red-letter');
-                } else {
-                    cell.classList.remove('red-letter');
-                }
-            }
-        }
+        // Append all three parts
+        this.cellGrid.appendChild(lettersBefore);
+        this.cellGrid.appendChild(centerLetter);
+        this.cellGrid.appendChild(lettersAfter);
+        
+        // Measure center letter width and set CSS variable for positioning
+        requestAnimationFrame(() => {
+            const halfWidth = centerLetter.offsetWidth / 2;
+            this.cellGrid.style.setProperty('--center-letter-half-width', `${halfWidth}px`);
+        });
         
         this.progressText.textContent = `Word ${this.currentIndex + 1} of ${this.words.length}`;
         
@@ -308,13 +294,7 @@ class RSVPReader {
         this.textInput.disabled = false;
         
         // Clear all cells
-        for (let i = 0; i < this.numCells; i++) {
-            const cell = document.getElementById(`cell-${i}`);
-            if (cell) {
-                cell.textContent = '';
-                cell.classList.remove('red-letter');
-            }
-        }
+        this.cellGrid.innerHTML = '';
         
         this.progressText.textContent = 'Word 0 of 0';
     }
